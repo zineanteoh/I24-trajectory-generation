@@ -14,8 +14,13 @@ import utils_optimization as opt
 import utils_vis as vis
 from tqdm import tqdm
 import random
+import os # use this to save timespace png to absolute directory
 
 pts = ['bbr_x','bbr_y', 'fbr_x','fbr_y','fbl_x','fbl_y','bbl_x', 'bbl_y']
+
+zi_output_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\benchmark"
+zi_timespace_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\timespace"
+
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')
@@ -222,7 +227,9 @@ def pollute_car(car, AVG_CHUNK_LENGTH, OUTLIER_RATIO):
 
 def pollute(df, AVG_CHUNK_LENGTH, OUTLIER_RATIO):
     print("Downgrading data...")
+    print(df.iloc[-1]['Frame #'])
     df = df.groupby('ID').apply(pollute_car, AVG_CHUNK_LENGTH, OUTLIER_RATIO).reset_index(drop=True)
+    print(df.iloc[-1]['Frame #'])
     # df = applyParallel(df.groupby("ID"), pollute_car).reset_index(drop=True)
     return df
 
@@ -239,16 +246,18 @@ if __name__ == "__main__":
     # you can select some time-space window such that the trajectory lengths are similar (run plot_time_space to visualize)
     df = df[df["x"]>1000]
     df = df[df["Frame #"]>1000]
-    
-    df.to_csv(r"E:\I24-postprocess\benchmark\TM_1000_GT.csv", index=False) # save the ground truth data
+    df.to_csv(zi_output_directory + "\TM_1000_GT.csv", index=False) # save the ground truth data
     #%%
     df = pollute(df, AVG_CHUNK_LENGTH=30, OUTLIER_RATIO=0.2) # manually perturb (downgrade the data)
-    df.to_csv(r"E:\I24-postprocess\benchmark\TM_1000_pollute.csv", index=False) # save the downgraded data
+    df.to_csv(zi_output_directory + "\TM_1000_pollute.csv", index=False) # save the downgraded data
     print("saved.")
     # %% visualize in time-space diagram
     plot_time_space(df, lanes=[1], time="Frame #", space="x", ax=None, show =True)
-    
+    # code to output timespace to a folder
+    zi_time_space_path = os.path.abspath(zi_timespace_directory)
+    output_file = "timespace_1000.png"
+    plt.savefig(os.path.join(zi_time_space_path, output_file))
     # %% examine an individual track by its ID
     car = df[df["ID"]==13]
-    vis.plot_track_df(car[80:180])
+    vis.plot_track_df(car)
     
