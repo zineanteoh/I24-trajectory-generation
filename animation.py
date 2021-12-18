@@ -214,8 +214,8 @@ if __name__ == "__main__":
     data_path = r"E:\I24-postprocess\MC_tracking" 
     # raw_path = data_path+r"\MC_reinterpolated.csv"
     mainFolder = r"C:\Users\teohz\Desktop\Zi-benchmark-output\benchmark"
-    gt_path = mainFolder + "\TM_1000_GT_preselected.csv"
-    raw_path = mainFolder + "\TM_1000_pollute_preselected.csv"
+    gt_path = mainFolder + "\TM_1000_GT.csv"
+    raw_path = mainFolder + "\TM_1000_pollute.csv"
     # da_path = data_path+r"\DA\MC_tsmn.csv"
     # rec_path = data_path+r"\rectified\MC_tsmn.csv"
     
