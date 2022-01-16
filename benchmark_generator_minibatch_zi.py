@@ -20,8 +20,6 @@ description:
 
 from benchmark_generator_zi import *
 
-batch_and_row_info = "6000_35001_10000_"
-
 def run_benchmark_TM(df, x_start, x_end):
     df.to_csv(zi_output_directory + "\TM_" + batch_and_row_info + str(x_start) + "_" + str(x_end) + "_GT.csv", index=False) # save the ground truth data
     return df
@@ -38,6 +36,10 @@ def plot_and_save_time_space(df, x_start, x_end):
     zi_time_space_path = os.path.abspath(zi_output_directory + r"\timespace_windows")
     output_file = "timespace_" + batch_and_row_info + str(x_start) + "_" + str(x_end) + ".png"
     plt.savefig(os.path.join(zi_time_space_path, output_file))
+
+
+# manually change this to generate mini batches
+batch_and_row_info = "8000_56001_12000_"
 
 #%%
 if __name__ == "__main__":
