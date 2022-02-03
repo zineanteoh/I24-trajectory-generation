@@ -30,20 +30,20 @@ Data association class consists of
 """
 import numpy as np
 import utils
-from shapely.geometry import Polygon
+# from shapely.geometry import Polygon
 import pandas as pd
 import utils_vis as vis
-import scipy
+# import scipy
 import matplotlib.pyplot as plt
 import utils_evaluation as ev
-import torch
+# import torch
 import itertools
 import multiprocessing
 
-import cProfile
-import pstats
-import io
-from line_profiler import LineProfiler
+# import cProfile
+# import pstats
+# import io
+# from line_profiler import LineProfiler
 
 # import warnings
 # warnings.filterwarnings("error")
