@@ -20,10 +20,6 @@ note on implementation:
 
 from benchmark_TM import *
 
-# directory to output TM_XXXX_GT.py and TM_XXXX_pollute.py
-zi_output_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\benchmark"
-
-
 def process_trajectory_file(start_row, nrows):
     '''
     Processes the trajectory file once and return the dataframe
@@ -45,43 +41,45 @@ def run_benchmark_TM(df, batch_num, start_row, nrows):
     #df = df[df["x"]>2500]
     #df = df[df["Frame #"]>1000]
     
-    df.to_csv(zi_output_directory + "\TM_" + str(batch_num * 1000) + "_" + str(start_row) + "_" + str(nrows) + "_GT.csv", index=False) # save the ground truth data
+    df.to_csv(output_directory + "\TM_" + str(batch_num * 1000) + "_" + str(start_row) + "_" + str(nrows) + "_GT.csv", index=False) # save the ground truth data
     return df
 
 def pollute_data(df, batch_num, start_row, nrows):
     df = pollute(df, AVG_CHUNK_LENGTH=30, OUTLIER_RATIO=0.2) # manually perturb (downgrade the data)
-    df.to_csv(zi_output_directory + "\TM_" + str(batch_num * 1000) + "_" + str(start_row) + "_" + str(nrows) + "_pollute.csv", index=False) # save the downgraded data
+    df.to_csv(output_directory + "\TM_" + str(batch_num * 1000) + "_" + str(start_row) + "_" + str(nrows) + "_pollute.csv", index=False) # save the downgraded data
     print("saved.")
     return df
 
 def plot_and_save_time_space(df, batch_num, start_row, nrows):
     plot_time_space(df, lanes=[1], time="Frame #", space="x", ax=None, show =True)
     # code to output timespace to a folder
-    zi_time_space_path = os.path.abspath(zi_output_directory)
+    zi_time_space_path = os.path.abspath(output_directory)
     output_file = "timespace_" + str(batch_num * 1000) + "_" + str(start_row) + "_" + str(nrows) + ".png"
     plt.savefig(os.path.join(zi_time_space_path, output_file))
+
+# directory to output TM_XXXX_GT.py and TM_XXXX_pollute.py
+output_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\pollutedData"
 
 #%%
 if __name__ == "__main__":
     
-    # the number of rows to read TM_trajectory each loop
+    # the number of rows to read TM_trajectory each loop 
     start_row = 1
     nrows = 5000
-    for batch_num in range(1,11):
+    for batch_num in range(1,5):
         # skip batch0
         if batch_num == 0:
             continue
         
         start_row = 500*(batch_num**2) + 3500*batch_num - 3999
         nrows = 5000 + (1000 * (batch_num - 1))
-        # print("start_row: " + str(start_row))
         print(start_row, nrows)
         df = process_trajectory_file(start_row, nrows)
-        # set df_batch 
-        df_batch = df
-        for i in range(1):
-            df_batch = run_benchmark_TM(df_batch, batch_num, start_row, nrows)
-            df_batch = pollute_data(df_batch, batch_num, start_row, nrows)
-            df_batch = plot_and_save_time_space(df_batch, batch_num, start_row, nrows)
+        # generate ground truth csv file (uncomment if not needed)
+        df = run_benchmark_TM(df, batch_num, start_row, nrows)
+            
+        # genereate pollute csv file after polluting
+        df = pollute_data(df, batch_num, start_row, nrows)
+        df = plot_and_save_time_space(df, batch_num, start_row, nrows)
 
 

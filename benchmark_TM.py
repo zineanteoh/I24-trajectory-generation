@@ -21,8 +21,6 @@ from scipy.signal import savgol_filter
 dt = 1/100
 pts = ['bbr_x','bbr_y', 'fbr_x','fbr_y','fbl_x','fbl_y','bbl_x', 'bbl_y']
 
-zi_output_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\benchmark"
-
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')
@@ -272,16 +270,16 @@ def pollute_car(car, AVG_CHUNK_LENGTH, OUTLIER_RATIO):
     car=car.reset_index(drop=True)
     l = car["length"].iloc[0]
     w = car["width"].iloc[0]
-    id = car["ID"].iloc[0] # original ID
+    #id = car["ID"].iloc[0] # original ID
     
     # mask chunks
     n_chunks = int(len(car)*0.01)
     for index in sorted(random.sample(range(0,len(car)),n_chunks)):
         to_idx = max(index, index+AVG_CHUNK_LENGTH+np.random.normal(0,20)) # The length of missing chunks follow Gaussian distribution N(AVG_CHUNK_LENGTH, 20)
         car.loc[index:to_idx, pts] = np.nan # Mask the chunks as nan to indicate missing detections
-        if id>=1000: id+=1 # assign unique IDs to fragments
-        else: id*=1000
-        car.loc[to_idx:, ["ID"]] = id
+        #if id>=1000: id+=1 # assign unique IDs to fragments
+        #else: id*=1000
+        #car.loc[to_idx:, ["ID"]] = id
         
     # add outliers (noise)
     outlier_idx = random.sample(range(0,len(car)),int(OUTLIER_RATIO*len(car))) # randomly select 0.01N bbox for each trajectory to be outliers
@@ -298,32 +296,32 @@ def pollute(df, AVG_CHUNK_LENGTH, OUTLIER_RATIO):
     df = df.sort_values(by=['Frame #','ID']).reset_index(drop=True)         
     return df
 
+# ACTION: change this to local folder
+output_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\benchmark"
+
 # %%
 if __name__ == "__main__":
     data_path = r"E:\I24-postprocess\benchmark\TM_trajectory.csv"
     df = pd.read_csv(data_path, nrows=1000)
-    # df = df[df["ID"]==38]
-    # print(len(df))
+
+    print(len(df))
     df = standardize(df)
     df = calc_state(df)
     df = preprocess(df)
-    
+
     # you can select some time-space window such that the trajectory lengths are similar (run plot_time_space to visualize)
-    # df = df[df["x"]>1000]
-    # df = df[df["Frame #"]>1000]
-
-    df.to_csv(r"E:\I24-postprocess\benchmark\TM_2000_GT.csv", index=False) # save the ground truth data
+    #df = df[df["x"]>1000]
+    #df = df[df["Frame #"]>1000]
+    df.to_csv(output_directory + "\TM_1000_GT.csv", index=False) # save the ground truth data
     # plot_time_space(df, lanes=[1], time="Frame #", space="x", ax=None, show =True)
-    #%%
-    df = pollute(df, AVG_CHUNK_LENGTH=30, OUTLIER_RATIO=0.2) # manually perturb (downgrade the data)
-
-    df.to_csv(r"E:\I24-postprocess\benchmark\TM_2000_pollute.csv", index=False) # save the downgraded data
+    
+    # %%
+    df = pollute(df, AVG_CHUNK_LENGTH=5, OUTLIER_RATIO=0.3) # manually perturb (downgrade the data)
+    df.to_csv(output_directory + "\TM_1000_pollute.csv", index=False) # save the downgraded data
     print("saved.")
     # %% visualize in time-space diagram
-    # plot_time_space(df, lanes=[1], time="Frame #", space="x", ax=None, show =True)
-    
-    # %% examine an individual track by its ID
-    # car = df[df["ID"]==38]
-    # vis.dashboard([car],["x","y","speed","acceleration","jerk","theta","jerk_x","jerk_y"],["gt"])
-    # vis.plot_track_df(car[0:100])
-    
+    plot_time_space(df, lanes=[1], time="Frame #", space="x", ax=None, show =True)
+    # code to output timespace to a folder
+    zi_time_space_path = os.path.abspath(output_directory)
+    output_file = "timespace_1000.png"
+    plt.savefig(os.path.join(zi_time_space_path, output_file))
