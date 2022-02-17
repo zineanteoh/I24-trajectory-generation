@@ -17,12 +17,8 @@ import random
 import os # use this to save timespace png to absolute directory
 from scipy.signal import savgol_filter
 
-<<<<<<< HEAD
 
-dt = 1/100
-=======
 dt = 1/30
->>>>>>> 63e9cbadbbe206c192499cc46ef8e601b2d2cace
 pts = ['bbr_x','bbr_y', 'fbr_x','fbr_y','fbl_x','fbl_y','bbl_x', 'bbl_y']
 
 def smooth(y, box_pts):
