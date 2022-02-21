@@ -58,57 +58,32 @@ def plot_and_save_time_space(df, batch_num, start_row, nrows):
     plt.savefig(os.path.join(zi_time_space_path, output_file))
 
 # directory to output TM_XXXX_GT.py and TM_XXXX_pollute.py
-output_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\generation2_synthetic_data"
-input_directory = r"E:\I24-postprocess\benchmark\scenario8_trajectory.csv"
+output_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\generation2_synthetic_data\scenario8"
+input_directory = r"E:\I24-postprocess\benchmark\TM_trajectory.csv"
 # use this directory if full_df has been processed before
 processed_input_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\generation2_synthetic_data"
 
-'''
-Configurations Description: 
-    We want to discard the first X minutes of simulation where cars are still 
-    entering the lane. I manually checked when the first car exited the 
-    simulation, and set row_to_skip equals to this row + 1. 
-
-scenario8_trajectory.csv
-    row_to_skip = 52692
-    car_id_to_remove = [2, 5, 6, 7]
-    
-scenario9_trajectory.csv
-    row_to_skip
-    car_id_to_remove = []
-'''
-
 #%%
 if __name__ == "__main__":
-    row_to_skip = 52692 + 500000 * 4
-    car_id_to_remove = [2, 5, 6, 7] 
+    simulation_range = "0-15min"
     
-    # Run 1-2 if this is the first time running. 
-    # Otherwise just run 3 to import the preprocessed file
-    # 1. Read full file
-    full_df = pd.read_csv(input_directory, skiprows=[i for i in range(1, row_to_skip)], nrows=500000)
-    
-    for car_id in car_id_to_remove: 
-        # remove the first car from each lane
-        full_df.drop(full_df[full_df['ID']==car_id].index, inplace=True)
+    # Read straight from processed_trajectory
+    orig_df = pd.read_csv(processed_input_directory + "\scenario8\processed_trajectory_" + simulation_range + ".csv")
     
     #%%
-    full_df = standardize(full_df)
-    full_df = calc_state(full_df)
-    full_df = preprocess(full_df)
     
-    # 2. save preprocessed file to save time
-    full_df.to_csv(output_directory + "\processed_trajectory.csv", index=False)
+    # Slice t_range and x_range
+    t_range = [0, 5000]
+    x_range = [3000, 4000]
     
-    df = full_df
-    #%%
-    # 3. Read straight from processed_trajectory
-    df = pd.read_csv(processed_input_directory + "\processed_trajectory.csv")
+    df = orig_df[(orig_df['Frame #'] >= t_range[0]) & (orig_df['Frame #'] <= t_range[1])]
+    df = df[(df['x'] >= x_range[0]) & (df['x'] <= x_range[1])]
     
     #%% 
     # pollute data
+    
     df = pollute(df, AVG_CHUNK_LENGTH=30, OUTLIER_RATIO=0.2) # manually perturb (downgrade the data)
-    df.to_csv(output_directory + "\pollute.csv", index=False)
+    df.to_csv(output_directory + "\pollute_" + simulation_range + "_" + ".csv", index=False)
     #%%
     # plot data
     for lane in range(1,5):
