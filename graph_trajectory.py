@@ -74,10 +74,17 @@ def smooth_trajectory(df):
             car trajectories into one dataframe and sorting by Frame # to
             retain row orders
     '''
-    #df.groupby('ID')
+    unique_IDs = df['ID'].unique()
+    output_df = []
+    for carId in unique_IDs:
+        print(carId)
+        df_car = df[df['ID'] == carId]
+        df_car = smooth_car(df_car)
+        output_df.append(df_car)        
     
+    out = pd.concat(output_df, ignore_index=True)
     
-    return df
+    return out
 
 def smooth_car(df_car, plot_graph = False):
     '''
@@ -134,33 +141,33 @@ def smooth_car(df_car, plot_graph = False):
     if plot_graph:
         # x position
         # plot position
-        # car_id = df['ID'][0]
-        # plot_title = "Position (in x): Car_id: " + str(car_id)
-        # plot_infos = [{"x_list": time_x, "y_list": x, "color": "tab:olive", "label": "Position (in x)"},
-        #               {"x_list": spl_time_x, "y_list": spl_x, "color": "tab:green", "label": "Spline Fit Position"}]
-        # output_file_name = "car" + str(car_id) + "_1_position.png"
-        # plot_figure(plot_title, plot_infos, "time (seconds)", "position, x", 1, output_file_name)
+        car_id = df['ID'][0]
+        plot_title = "Position (in x): Car_id: " + str(car_id)
+        plot_infos = [{"x_list": time_x, "y_list": x, "color": "tab:olive", "label": "Position (in x)"},
+                      {"x_list": spl_time_x, "y_list": spl_x, "color": "tab:green", "label": "Spline Fit Position"}]
+        output_file_name = "car" + str(car_id) + "_1_position.png"
+        plot_figure(plot_title, plot_infos, "time (seconds)", "position, x", 1, output_file_name)
         
-        # # plot velocity
-        # plot_title = "Velocity (in x): Car_id: " + str(car_id)
-        # plot_infos = [{"x_list": time_v_x, "y_list": v_x, "color": "tab:olive", "label": "Velocity (in x)"}, 
-        #               {"x_list": spl_time_v_x, "y_list": spl_v_x, "color": "tab:green", "label": "Spline Fit Velocity"}]
-        # output_file_name = "car" + str(car_id) + "_2_velocity.png"
-        # plot_figure(plot_title, plot_infos, "time (seconds)", "velocity, dx/dt", 0.9, output_file_name)
+        # plot velocity
+        plot_title = "Velocity (in x): Car_id: " + str(car_id)
+        plot_infos = [{"x_list": time_v_x, "y_list": v_x, "color": "tab:olive", "label": "Velocity (in x)"}, 
+                      {"x_list": spl_time_v_x, "y_list": spl_v_x, "color": "tab:green", "label": "Spline Fit Velocity"}]
+        output_file_name = "car" + str(car_id) + "_2_velocity.png"
+        plot_figure(plot_title, plot_infos, "time (seconds)", "velocity, dx/dt", 0.9, output_file_name)
         
-        # # plot acceleration
-        # plot_title = "Acceleration (in x): Car_id: " + str(car_id)
-        # plot_infos = [{"x_list": time_a_x, "y_list": a_x, "color": "tab:olive", "label": "Accleration (in x)"},
-        #               {"x_list": spl_time_a_x, "y_list": spl_a_x, "color": "tab:green", "label": "Spline Fit Acceleration"}]
-        # output_file_name = "car" + str(car_id) + "_3_acceleration.png"
-        # plot_figure(plot_title, plot_infos, "time (seconds)", "acceleration, dv/dt", 0.9, output_file_name)
+        # plot acceleration
+        plot_title = "Acceleration (in x): Car_id: " + str(car_id)
+        plot_infos = [{"x_list": time_a_x, "y_list": a_x, "color": "tab:olive", "label": "Accleration (in x)"},
+                      {"x_list": spl_time_a_x, "y_list": spl_a_x, "color": "tab:green", "label": "Spline Fit Acceleration"}]
+        output_file_name = "car" + str(car_id) + "_3_acceleration.png"
+        plot_figure(plot_title, plot_infos, "time (seconds)", "acceleration, dv/dt", 0.9, output_file_name)
         
-        # # plot jerk
-        # plot_title = "Jerk (in x): Car_id: " + str(car_id)
-        # plot_infos =  [{"x_list": time_j_x, "y_list": j_x, "color": "tab:olive", "label": "Jerk (in x)"},
-        #                {"x_list": spl_time_j_x, "y_list": spl_j_x, "color": "tab:green", "label": "Spline Fit Jerk"}]
-        # output_file_name = "car" + str(car_id) + "_4_jerk.png"
-        # plot_figure(plot_title, plot_infos, "time (seconds)", "jerk, da/dt", 1, output_file_name)
+        # plot jerk
+        plot_title = "Jerk (in x): Car_id: " + str(car_id)
+        plot_infos =  [{"x_list": time_j_x, "y_list": j_x, "color": "tab:olive", "label": "Jerk (in x)"},
+                        {"x_list": spl_time_j_x, "y_list": spl_j_x, "color": "tab:green", "label": "Spline Fit Jerk"}]
+        output_file_name = "car" + str(car_id) + "_4_jerk.png"
+        plot_figure(plot_title, plot_infos, "time (seconds)", "jerk, da/dt", 1, output_file_name)
         
         # y position
         # plot position
@@ -209,7 +216,7 @@ trajectory_path = main_folder + "\TM_GT_5000rows.csv"
 SAVE_PLOT_TO_FILE = False
 SAVE_TRAJECTORY_TO_CSV = False
 ANIMATE_TRAJECTORY = False
-
+#%%
 if __name__ == "__main__":
     
     # read file
