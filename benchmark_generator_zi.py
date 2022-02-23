@@ -19,6 +19,7 @@ note on implementation:
 """
 
 from benchmark_TM import *
+from graph_trajectory import *
 
 def process_trajectory_file(start_row, nrows):
     '''
@@ -57,58 +58,101 @@ def plot_and_save_time_space(df, batch_num, start_row, nrows):
     output_file = "timespace_" + str(batch_num * 1000) + "_" + str(start_row) + "_" + str(nrows) + ".png"
     plt.savefig(os.path.join(zi_time_space_path, output_file))
 
+def modify_vehicle_class(df_column):
+    '''
+    Given a column of vehicle class, return an array where class is mapped to
+    an integer corresponding to the class
+    
+    sedan -> 1
+    SUV -> 2
+    bus -> 3
+    truck -> 4
+    trailer -> 5
+    '''
+    vehicle_class_conditions = [
+        df_column.eq("sedan"), 
+        df_column.eq("SUV"), 
+        df_column.eq("bus"), 
+        df_column.eq("truck"), 
+        df_column.eq("trailer")]
+    choices = [1, 2, 3, 4, 5]
+    return np.select(vehicle_class_conditions, choices)
+    
+def update_column_to_schema(full_df, timestamp_offset = 0):
+    '''
+    @brief  Renames the df's column to match the db schema
+            and add the relevant columns
+    '''
+    # rename and populate columns according to db schema
+    full_df = full_df.rename({'Timestamp': 'timestamp', 
+                    'Object class': 'Coarse_vehicle_class', 
+                    'x': 'x_position',
+                    'y': 'y_position'}, axis='columns')
+    
+    # add configuration id (1 for now)
+    full_df['configuration_ID'] = 1
+    
+    # add timestamp for subsequent generated data files? 
+    # full_df['timestamp'] = full_df['timestamp'] + timestamp_offset
+    
+    # add road segment id (-1 for now)
+    full_df['road_segment_ID'] = -1
+    
+    # height to 0 for now
+    full_df['height'] = 0
+    
+    # map vehicle class to number (eg 1 for truck, 2 for SUV)
+    full_df['Coarse_vehicle_class'] = modify_vehicle_class(full_df['Coarse_vehicle_class'])
+    
+    return full_df
+
+
 # directory to output TM_XXXX_GT.py and TM_XXXX_pollute.py
 output_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\generation2_synthetic_data"
-input_directory = r"E:\I24-postprocess\benchmark\scenario8_trajectory.csv"
+input_directory = r"E:\I24-postprocess\benchmark\TM_trajectory.csv"
 # use this directory if full_df has been processed before
-processed_input_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\generation2_synthetic_data"
-
-'''
-Configurations Description: 
-    We want to discard the first X minutes of simulation where cars are still 
-    entering the lane. I manually checked when the first car exited the 
-    simulation, and set row_to_skip equals to this row + 1. 
-
-scenario8_trajectory.csv
-    row_to_skip = 52692
-    car_id_to_remove = [2, 5, 6, 7]
-    
-scenario9_trajectory.csv
-    row_to_skip
-    car_id_to_remove = []
-'''
+processed_input_directory = r"C:\Users\teohz\Desktop\Zi-benchmark-output\generation2_synthetic_data\TM_trajectory\x_12000-20000"
 
 #%%
 if __name__ == "__main__":
-    row_to_skip = 52692 + 500000 * 4
-    car_id_to_remove = [2, 5, 6, 7] 
     
-    # Run 1-2 if this is the first time running. 
-    # Otherwise just run 3 to import the preprocessed file
-    # 1. Read full file
-    full_df = pd.read_csv(input_directory, skiprows=[i for i in range(1, row_to_skip)], nrows=500000)
+    # files to iterate
+    processed_files = ["\TM_trajectory_processed_trajectory_0-12min.csv",
+                       "\TM_trajectory_processed_trajectory_12-23min.csv",
+                       "\TM_trajectory_processed_trajectory_23-34min.csv"]
     
-    for car_id in car_id_to_remove: 
-        # remove the first car from each lane
-        full_df.drop(full_df[full_df['ID']==car_id].index, inplace=True)
+    for file in processed_files:
+        # Otherwise just run 3 to import the preprocessed file
+        # 1. Read full file
+        full_df = pd.read_csv(processed_input_directory + file)
+        
+        # (files already processed)
+        #full_df = standardize(full_df)
+        #full_df = calc_state(full_df)
+        #full_df = preprocess(full_df)
+        
+        # (THIS IS FOR TM_TRAJ ONLY) slice window to just take the first 8000 meters
+        full_df = full_df[(full_df['x'] >= 12000) & (full_df['x'] <= 20000)]
+    
+        # 2. update column
+        full_df = update_column_to_schema(full_df)
+        
+        # smooth out position
+        
+        
+        break
+    
     
     #%%
-    full_df = standardize(full_df)
-    full_df = calc_state(full_df)
-    full_df = preprocess(full_df)
-    
     # 2. save preprocessed file to save time
-    full_df.to_csv(output_directory + "\processed_trajectory.csv", index=False)
+    full_df.to_csv(output_directory + "\TM_trajectory\TM_trajectory_processed_trajectory_23-34min.csv", index=False)
     
     df = full_df
-    #%%
-    # 3. Read straight from processed_trajectory
-    df = pd.read_csv(processed_input_directory + "\processed_trajectory.csv")
     
     #%% 
     # pollute data
-    df = pollute(df, AVG_CHUNK_LENGTH=30, OUTLIER_RATIO=0.2) # manually perturb (downgrade the data)
-    df.to_csv(output_directory + "\pollute.csv", index=False)
+    pollute_df = pollute(df, AVG_CHUNK_LENGTH=30, OUTLIER_RATIO=0.2) # manually perturb (downgrade the data)
+    pollute_df.to_csv(output_directory + "\TM_trajectory\TM_trajectory_processed_trajectory_23-34min_pollute.csv", index=False)
     #%%
     # plot data
     for lane in range(1,5):
