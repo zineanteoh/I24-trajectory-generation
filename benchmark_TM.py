@@ -261,16 +261,16 @@ def pollute_car(car, AVG_CHUNK_LENGTH, OUTLIER_RATIO):
     car=car.reset_index(drop=True)
     l = car["length"].iloc[0]
     w = car["width"].iloc[0]
-    #id = car["ID"].iloc[0] # original ID
+    id = car["ID"].iloc[0] # original ID
     
     # mask chunks
     n_chunks = int(len(car)*0.01)
     for index in sorted(random.sample(range(0,len(car)),n_chunks)):
         to_idx = max(index, index+AVG_CHUNK_LENGTH+np.random.normal(0,20)) # The length of missing chunks follow Gaussian distribution N(AVG_CHUNK_LENGTH, 20)
         car.loc[index:to_idx, pts] = np.nan # Mask the chunks as nan to indicate missing detections
-        #if id>=1000: id+=1 # assign unique IDs to fragments
-        #else: id*=1000
-        #car.loc[to_idx:, ["ID"]] = id
+        if id>=100000: id+=1 # assign unique IDs to fragments
+        else: id*=100000
+        car.loc[to_idx:, ["ID"]] = id
         
     # add outliers (noise)
     outlier_idx = random.sample(range(0,len(car)),int(OUTLIER_RATIO*len(car))) # randomly select 0.01N bbox for each trajectory to be outliers
