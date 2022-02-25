@@ -77,14 +77,13 @@ def smooth_trajectory(df):
     unique_IDs = df['ID'].unique()
     output_df = []
     for carId in unique_IDs:
-        print(carId)
+        # print(carId)
         df_car = df[df['ID'] == carId]
         df_car = smooth_car(df_car)
-        output_df.append(df_car)        
+        output_df.append(df_car)
     
-    out = pd.concat(output_df, ignore_index=True)
-    
-    return out
+    if len(output_df) != 0:
+        return pd.concat(output_df, ignore_index=True)
 
 def smooth_car(df_car, plot_graph = False):
     '''
