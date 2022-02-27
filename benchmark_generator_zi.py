@@ -218,7 +218,7 @@ if __name__ == "__main__":
         # plot timespace to output directory
         if plot_timespace:
             for lane in range(1, 5):
-                plot_time_space(processed_pd, lanes=[lane], time="Frame #", space="x", ax=None, show =True)
+                plot_time_space(full_df, lanes=[lane], time="Frame #", space="x", ax=None, show =True)
                 timespace_path = os.path.abspath(output_directory)
                 output_file = "timespace_lane" + str(lane) + "_" + simulation_range + "min.png"
                 plt.savefig(os.path.join(timespace_path, output_file))
